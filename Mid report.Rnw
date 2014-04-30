@@ -1,0 +1,978 @@
+\documentclass[nogin]{beamer} %Instead of an article class, use beamer class
+\usepackage{graphicx} %Bring in outside images
+\usepackage{amssymb,amsmath} %Easy equation typsetter
+\usepackage{listings}
+\usepackage{color}
+\usepackage{colortbl} %More colours
+\usepackage{subfigure}
+\usetheme{mcgill} % Creates the McGill insignia behind the title page
+\usecolortheme[RGB={238,44,44}]{structure}
+\usetheme{PaloAlto}
+\title{Academy Awards: \\
+Modelling and Prediction}
+\subtitle{MATH 396 Midterm Report}
+\author{Christopher Lee}
+\institute[]{christopher.lee2@mail.mcgill.ca}
+\setbeamertemplate{itemize items}[ball]
+\setbeamertemplate{enumerate items}[circle]
+
+\begin{document}
+
+\frame{\titlepage}
+
+\begin{frame}
+\frametitle{Table of Contents}
+\tableofcontents
+\end{frame}
+
+\begin{frame}
+\frametitle{Introduction I}
+\small
+The Academy Awards represent the ultimate culmination of a film's critical success. It is the final and most important film award in the award season for the industry of motion picture.  Studies have even suggested (contentiously) that Oscar winners experience increased life expectancy. The Oscars represent a huge financial undertaking by film studios and producers for big-budget awards-campaigning. Also, prediction markets are trading millions of dollars in Oscar betting.
+\end{frame}
+
+\begin{frame}
+\frametitle{Introduction II}
+It is my intention to hollistically gather data on critically acclaimed and Oscar nominated films in order to model and predict the outcome of the annual Academy Awards in six categories.
+\begin{columns}[T]
+\begin{column}{0.5\textwidth}
+\begin{itemize}
+\item Best Actor in a Leading Role
+\item Best Actress in a Leading Role
+\item Best Actor in a Supporting Role
+\end{itemize}
+\end{column}
+\begin{column}{.5\textwidth}
+\begin{itemize}
+\item Best Actress in a Supporting Role
+\item Best Directing
+\item Best Picture
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}
+\frametitle{Introduction III}
+The first goal of this project is predictive modelling. I will endeavor to find models that best estimate the odds of Ocsar nominees winning. I will check the models for fit, and accuracy of prediction. \bigskip
+
+The second goal is descriptive modelling. Here we will focus more on the relationships between the variables correlated with the odds of winning an oscar, how they change across category and how they interact with other variables. I will scrutinize for spurious relationships and confounder variables
+\end{frame}
+
+\section{Data Collection}
+\begin{frame}
+\frametitle{Section 1}
+\begin{center}
+\Large
+Data Collection and Webscrapping
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{The Data}
+There is a stark lack of clean datasets, or data-friendly spreadsheets available for film. Therefore a large aspect of this research has committed to creating code to scrape and create the first holistic dataset on Academy Awards. The dataset will later be released onto github.com and other data-propogating sources for further analysis by others.
+\end{frame}
+
+\begin{frame}[allowframebreaks,t]{Data Sources}
+To begin, I employ a web-scraper written exclusively in R's Rcurl CITE and XML CITE packages. The web-scraper will sift htmlTable environments and individual XM elements from the following websites
+\begin{enumerate}
+\item \url{imdb.com} \\
+The main source of data with data on film awards and major film characteristics
+\item \url{boxofficemojo.com} \\
+The secondary source with reliable data on the finances of film
+\item \url{www.the-numbers.com/movie/budgets/all} \\
+A supplementary financial data source
+\item \url{nndb.com} \\
+The bibliographical data source for actors/actresses/directors
+\item \url{metacritic.com} \\
+An aggregate website which quantifies film quality on weighted average of aggregate reviews. Metacritic score will be used as a proxy for the critical reception of films.
+\end{enumerate}
+\end{frame}
+\begin{frame}
+\frametitle{Web-scrapper}
+The Web-scrapper scrapes data from a total of 4826 webpages, returning 1343 observations across 44 years (1970-2013) and 5 competitive Oscar categories. We have 37 attributes for every row.\bigskip
+
+The code for the web-scrapper itself will be made available in a separate .R file.
+\end{frame}
+
+\begin{frame}
+\frametitle{Covariates I}
+\small
+\begin{columns}[T]
+\begin{column}{.31\textwidth}
+\begin{block}{Name}
+\begin{itemize}
+\item past.win
+\item past.nom
+\item other.wins
+\item other.noms
+\item domestic.gross
+\item metacritic
+\end{itemize}
+\end{block}
+\end{column}
+\begin{column}{.69\textwidth}
+\begin{block}{Description: (C)count (B)binary (c)continuous}
+\begin{itemize}
+\item (C) Previous Oscars won
+\item (C) Previous Oscar nominations
+\item (C) Other awards by film
+\item (C) Other nominations by film
+\item (c) US Gross Earnings per million
+\item (c) Metacritic score
+\end{itemize}
+\end{block}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}
+\frametitle{Covariates II}
+\small
+\begin{columns}[T]
+\begin{column}{.27\textwidth}
+\begin{block}{Name}
+\begin{itemize}
+\item globes\space\space\space\space\space\space\space\space\space\space\space.
+\item bafta
+\item dga
+\item sag
+\item adapted
+\item date
+\end{itemize}
+\end{block}
+\end{column}
+
+\begin{column}{.73\textwidth}
+\begin{block}{Description: (C)count (B)binary (c)continuous}
+\begin{itemize}
+\item (B) Won 2014 Golden Globes award in same category
+\item (B) Won 2014 BAFTA in same category
+\item (B) Won 2014 Directors Guild Award
+\item (B) Won 2014 Screen Actors Guild Award
+\item (B) Film adapted from another medium
+\item (c) Month of film's wide release
+\end{itemize}
+\end{block}
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}
+\frametitle{Covariates III}
+\small
+\begin{columns}[T]
+\begin{column}{.3\textwidth}
+\begin{block}{Name}
+\begin{itemize}
+\item picture.nom
+\item direct.nom
+\item edit.nom
+\item script.nom\space\space\space\space\space\space\space\space\space\space.
+\item tiff.premiere
+\end{itemize}
+\end{block}
+\end{column}
+
+\begin{column}{.7\textwidth}
+\begin{block}{Description: (C)count (B)binary (c)continuous}
+\begin{itemize}
+\item (B) Oscar Nomination for Best Picture
+\item (B) Oscar Nomination for Best Director
+\item (B) Oscar Nomination for Best Editing
+\item (B) Oscar Nomination for Best Screenplay (adapted or original)
+\item (B) Film Premiere at Toronto International Film Festival
+\end{itemize}
+\end{block}
+\end{column}
+\end{columns}
+\end{frame}
+
+
+\section{Exploratory Analysis}
+\begin{frame}
+\frametitle{Section 3}
+\begin{center}
+\Large
+Exploratory Data Analysis
+\end{center}
+\end{frame}
+
+\begin{frame}
+Convention wisdom suggests some characteristics about the Oscar ceremony. We will quantitatively verify the claims of these expert pundits.
+<<echo=FALSE,message=FALSE,warning=FALSE>>=
+require(ggplot2)
+require(reshape2)
+require(scales)
+require(Hmisc)
+require(xtable)
+require(stargazer)
+setwd("~/Desktop/Project/MATH 396")
+main<-read.csv('Master2.csv')
+main$nom<-1
+main$dec<-ifelse(main$date=='December',1,0)
+df.actor<-subset(main,award=="Best Actor")
+df.actress<-subset(main,award=="Best Actress")
+df.sactor<-subset(main,award=="Best Supporting Actor")
+df.sactress<-subset(main,award=="Best Supporting Actress")
+df.director<-subset(main,award=="Best Director")
+df.picture<-subset(main,award=="Best Picture")
+@
+\end{frame}
+
+\begin{frame}
+\frametitle{Genre Discrimination}
+<<echo=FALSE,fig.height=4>>=
+unique<-main[duplicated(main$film)==F,] #Eliminate duplicate films for now
+g1.data<-aggregate(unique[,c(14:18)],by=list('Status'=unique$Won),sum)
+g1.data<-melt(g1.data,id.vars='Status')
+g1.data<-g1.data[order(g1.data$variable,decreasing=T),]
+
+ggplot(g1.data,aes(x=variable,y=value,fill=factor(Status)))+
+  geom_bar(stat='identity',position='dodge')+xlab('Genre')+ylab('Count')+
+  scale_fill_discrete(name='Oscar Status',labels=c('Nominees','Winners'))
+
+@
+\end{frame}
+
+\begin{frame}
+\frametitle{Release Date trends}
+<<echo=FALSE,fig.height=4>>=
+g2.data<-aggregate(main[c('Won','nom')],by=list('date'=main$date),sum)
+g2.data<-melt(g2.data,measure.vars=c('nom','Won'))
+g2.data$date<-factor(g2.data$date,levels=c('January','February','March','April','May',
+                     'June','July','August','September','October','November','December'))
+ggplot(g2.data,aes(x=date,y=value,fill=variable))+
+  geom_bar(stat='identity',position='dodge')+ylab('Count')+xlab("Release Date")+
+  scale_fill_discrete(name='',labels=c('Oscar Nominations','Oscars Won'))+
+  scale_x_discrete(name='Release Date',labels=month.abb)+coord_flip()
+@
+\end{frame}
+\begin{frame}
+\frametitle{The R-rated Academy?}
+\footnotesize
+<<echo=FALSE,fig.height=4>>=
+g3.data<-aggregate(unique[c('Won','nom')],by=list('rating'=unique$rating),sum)
+g3.data<-melt(g3.data,measure.vars=c('nom','Won'))
+g3.data$rating[g3.data$rating=="GP"]<-'G'
+g3.data$rating[g3.data$rating=="Not Yet Rated"]<-'Unrated'
+g3.data$rating[g3.data$rating=="X"]<-'Unrated'
+g3.data$rating[g3.data$rating=='M/PG']<-'PG'
+g3.data$rating[g3.data$rating=="M"]<-'PG'
+ggplot(g3.data,aes(x=rating,y=value,fill=variable))+
+  geom_bar(stat='identity',position='dodge')+ylab('Count')+xlab("Release Date")+
+  scale_fill_discrete(name='',labels=c('Oscar Nominations','Oscars Won'))+
+  theme(legend.position='top',legend.direction='horizontal')
+@
+An interesting avenue to approach is the idea that the Academy endeavors to reward so-called 'high-art' or cinematic projects that are mature and uncomfortable/inappropriate for younger audiences.
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Genres and Categories}
+\resizebox*{\textwidth}{!}{%
+<<echo=FALSE,results='asis',message=FALSE,size='footnotesize'>>=
+data<-aggregate(main[c('drama','comedy','biopic','rom','action','adapted','age')],
+                by=list('category'=main$award),mean,na.rm=T)
+row.names(data)<-data$category
+data<-data[,-1]
+data<-apply(data,2,function(x)round(x,digits=2))
+
+latex(data,rowlabel='Category',file='',table.env=F)
+@
+}\bigskip
+
+\small
+It is not surprising that to see that Best Picture holds the comedy genre in the lowest regard as seen by the meek representation, and favors biographical feature films. Actress nominees have the lowest mean age while directors have the highest. We also see that over half of all nominated films already exist in some other medium as 59\% of all nominees are adapted from other sources.
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Most decorated Winners and Nominees}
+\small
+The top 5 most nominated individuals \bigskip
+
+\resizebox*{\textwidth}{!}{%
+<<echo=FALSE,results='asis',message=FALSE,size='footnotesize'>>=
+df.male<-subset(main,award=='Best Actor'|award=='Best Supporting Actor')
+df.female<-subset(main,award=='Best Actress'|award=='Best Supporting Actress')
+tab1<-data.frame(table(df.male$film.person))
+tab1<-tab1[order(-tab1$Freq),][1:5,]
+tab2<-data.frame(table(df.female$film.person))
+tab2<-tab2[order(-tab2$Freq),][1:5,]
+tab3<-data.frame(table(df.director$film.person))
+tab3<-tab3[order(-tab3$Freq),][1:5,]
+tab.nom<-cbind(tab1,tab2,tab3)
+colnames(tab.nom)<-rep(c('Name','Nominations'),3)
+latex(tab.nom,rowname=NULL,cgroup=c('Actors','Actresses','Directors'),n.cgroup=c(2,2,2),table.env=F,file='')
+@
+}\bigskip
+
+Now the top 5 winners \bigskip
+
+\resizebox*{\textwidth}{!}{%
+<<echo=FALSE,results='asis',message=FALSE,size='footnotesize'>>=
+df.male2<-subset(main,Won==1&(award=='Best Actor'|award=='Best Supporting Actor'))
+df.female2<-subset(main,Won==1&(award=='Best Actress'|award=='Best Supporting Actress'))
+df.director2<-subset(df.director,Won==1)
+tab4<-data.frame(table(df.male2$film.person))
+tab4<-tab4[order(-tab4$Freq),][1:5,]
+tab5<-data.frame(table(df.female2$film.person))
+tab5<-tab5[order(-tab5$Freq),][1:5,]
+tab6<-data.frame(table(df.director2$film.person))
+tab6<-tab6[order(-tab6$Freq),][1:5,]
+tab.won<-cbind(tab4,tab5,tab6)
+colnames(tab.won)<-rep(c('Name','Won'),3)
+latex(tab.won,rowname=NULL,cgroup=c('Actors','Actresses','Directors'),n.cgroup=c(2,2,2),table.env=F,file='')
+@
+}
+\end{frame}
+
+\section{Methodology}
+\begin{frame}
+\frametitle{Section 3}
+\begin{center}
+\Large
+Methodology: \\
+Logistic Regression
+\end{center}
+\end{frame}
+
+\begin{frame}
+The dataset is composed of all Oscar nominees in the past 44 years. I intend to model the outcome of six award categories. The regressand, titled 'Won' is a categorical 0/1 variable. We will employ the logistic regression classification method to model the outcome. We have a modest sample size (n=220) for each category, which we will model seperately. We will apply the same model for all four acting categories, and seperate models for Best Director and Best Picture, respectively.
+\end{frame}
+
+\begin{frame}
+\frametitle{Probabilities and Odds}
+In logistic regression we are regressing covariates on a categorical variable. Our regressand Y takes values of 0 and 1.
+\begin{itemize}
+\item \emph{p} denotes the \emph{probability} of an event occuring.\\
+\item $\frac{p}{1-p}$ is the \emph{odds} of that event occuring. \\
+\item $\ln(\frac{p}{1-p})$ is the natural logarithm of the odds, or the \emph{logit}
+\end{itemize}
+
+$y_i=\left\{\begin{matrix}
+ 1&\textup{if \ nominee\ has\ won} \\
+ 0& \textup{otherwise}
+\end{matrix}\right. \hfill
+\Pr(Y_i=1)=p_i$ \vfill
+ $y_i \sim \textup{Bernouilli}(p_i) \hfill
+\textup{odds}(Y_i=1) =\frac{p_i}{1-p_i}$
+\end{frame}
+
+\begin{frame}
+\frametitle{Logistic Regression: Linear vs. Logistic}
+In linear regression, our covariates have a direct linearly relationship with the regressand, but for logistic regression, the covariates have a linear relationship with the logit of the regressand. \bigskip
+\begin{flalign*}
+y &=\alpha+\beta X +\epsilon \\
+\ln\Big( \frac{p}{1-p}\Big) &=\alpha+\beta X +\epsilon
+\end{flalign*}
+\end{frame}
+
+\begin{frame}
+\frametitle{Assumptions}
+\begin{enumerate}
+\item Observations are independent
+\item Covariates are linearly related to the logit of the dependent
+\item Absence of multicollinearity
+\end{enumerate}
+Unlike OLS, logistic regression does not require a linearly relationship between the dependent and the covariates. There is no distribution assumption over variables and there is no homoskedastic assumptions being made.
+\end{frame}
+
+\begin{frame}
+\frametitle{Interpretation}
+\begin{align*}
+\ln\Big( \frac{p}{1-p}\Big) &=\beta_0+\beta_1 x_1 + \beta_2 x_2 +\epsilon
+\end{align*}
+\begin{block}{
+We interpret the $\beta$ coefficients in two equivalent ways}
+\begin{enumerate}
+\item A 1-unit change in $x_1$ will lead to a $\beta_1$ increase in the log odds of y
+\item A 1-unit change in $x_1$ will change the odds of y by a factor of $e^{\beta_1}$
+\end{enumerate}
+\end{block}
+\end{frame}
+
+\begin{frame}
+\frametitle{Interpretation}
+Interpretation 1 follows strictly from the formula.
+\begin{align*}
+\ln\Big( \frac{p}{1-p}\Big) &=\beta_0+\beta_1 x_1 + \beta_2 x_2 +\epsilon
+\end{align*}
+Interpretation 2 comes from exponentiating the formula.
+\begin{align*}
+\frac{p}{1-p} &=\exp(\beta_0+\beta_1 x_1+\beta_2 x_2+\epsilon)
+\end{align*}
+Interpretation 2 is easier to communicate so I will predominantly report results in the exponentiated form. \\
+$e^{\beta}$'s are called an \emph{Odds ratios}
+\end{frame}
+
+\begin{frame}
+\frametitle{Odds Ratios}
+\small
+\begin{align*}
+\ln\Big( \frac{p}{1-p}\Big) &=\beta_0+\beta_1 x_1 + \beta_2 x_2 \\
+\frac{p}{1-p} &=\exp(\beta_0+\beta_1 x_1+\beta_2 x_2) \\
+ &=e^{\beta_0}e^{\beta_1 x_1}e^{\beta_2 x_2} \\
+ &=(\textup{OR}{_{0}})(\textup{OR}{_{1}}^{x_1})(\textup{OR}{_{2}}^{x_2})
+\end{align*}
+where $\textup{OR}_i=e^{\beta_i}$ \\
+$\frac{p}{1-p}$ and $\textup{OR}_i$ have a \emph{multiplicative} relationship instead of the \emph{additive} relationship between y and $\beta_i$ in the OLS case.\\
+So a 1-unit increase in $x_1$ changes the odds of y by a factor of $\textup{OR}_1$ but a 2-unit increase in $x_1$ changes the odds by a factor of $\textup{OR}{_1}^{2}$, not $2\times \textup{OR}_1$
+\end{frame}
+
+\begin{frame}
+\frametitle{Predicted Values}
+\begin{flalign*}
+\ln\Bigg(\frac{\widehat{p}}{1-\widehat{p}}\Bigg) &= \widehat{\beta_0}+\widehat{\beta_1} x_1 + \widehat{\beta_2} x_2 \\
+\frac{\widehat{p}}{1-\widehat{p}} &=\exp(\widehat{\beta_0}+\widehat{\beta_1} x_1 + \widehat{\beta_2} x_2 ) \\
+\widehat{p} &= \frac{\exp(\widehat{\beta_0}+\widehat{\beta_1} x_1 + \widehat{\beta_2} x_2 )}{1+\exp(\widehat{\beta_0}+\widehat{\beta_1} x_1 + \widehat{\beta_2} x_2 ) }
+\end{flalign*}
+This returns predicted probabilities for our regressand Y
+\end{frame}
+
+\begin{frame}[allowframebreaks,t]{Awards Races}
+\small
+Because this analysis is not motivated or backed by any formal theory, as would be the case with an epidemiology study, we will rely on facts and trends that are widely agreed upon in the film and critic community.
+\begin{enumerate}
+\item The Screen Actors Guild Awards predict the Oscar Acting awards with great success
+\item The Directors Guild awards predict the Oscar Directing award with great success
+\item The British Academy of Film and Arts (BAFTA), Golden Globes and Toronto International Film Festival (TIFF) are indicative of Oscar chances
+\item The Academy Awards are attracted to commercially succesful projects
+\item It is nearly impossible to win Best Picture without nominations for Best Editing and Best Direction.
+\end{enumerate}
+I will first look at the Acting race.
+\end{frame}
+
+\begin{frame}
+\frametitle{Acting Models I with raw coefficients}
+\begin{columns}
+\begin{column}{.9\textwidth}
+\resizebox*{!}{\textheight}{%
+<<echo=FALSE,results='asis',warning=FALSE,message=FALSE>>=
+reg1<-(glm(Won~globes+bafta+picture.nom+domestic.gross+past.win+past.nom,df.actor,family=binomial(logit)))
+reg2<-(glm(Won~globes+bafta+picture.nom+domestic.gross+past.win+past.nom,df.actress,family=binomial(logit)))
+reg3<-(glm(Won~globes+bafta+picture.nom+domestic.gross+past.win+past.nom,df.sactor,family=binomial(logit)))
+reg4<-(glm(Won~globes+bafta+picture.nom+domestic.gross+past.win+past.nom,df.sactress,family=binomial(logit)))
+stargazer(reg1,reg2,reg3,reg4,align=TRUE,dep.var.labels='Won Oscar',column.labels=c('Best Actor','Best Actress','Best Supporting Actor','Best Supporting Actress'),model.numbers=FALSE,font.size='footnotesize',float=F)
+@
+}
+\end{column}
+\begin{column}{.1\textwidth}
+\small
+$\space\beta$ \\
+(se)
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}
+\frametitle{Acting Models I}
+\footnotesize
+The Golden Globes and BAFTAs show the co-movement between film awards, while the picture.nom suggests that voters may be less likely to value a performance, if the film itself is poor. Also, interestingly, the log odds increase with the more previous nominations of a nominee, but decreases for every additional previous win (and we know no Actor or Director has ever won more than 3) \\
+
+There is also some unanticipated features. I find the sample populations of these four categories to be disimilar in many more ways than anticipated. Most covariates are not stable across all 4 models. The logit of all four models are positively correlated with a win at the BAFTA Awards or the Golden Globes but beyond that, we can little generalize across all 4 categories.\\
+
+I will examine the odds ratios of these models for further interpretation
+\end{frame}
+
+\begin{frame}
+\frametitle{Acting Models expressed in Odds Ratios}
+\begin{columns}
+\begin{column}{.9\textwidth}
+\resizebox*{!}{\textheight}{%
+<<echo=FALSE,warning=FALSE,message=FALSE,results='asis'>>=
+stargazer(reg1,reg2,reg3,reg4,align=TRUE,dep.var.labels='Won Oscar',column.labels=c('Best Actor','Best Actress','Best Supporting Actor','Best Supporting Actress'),model.numbers=FALSE,font.size='footnotesize',float=F,ci=T,apply.coef=exp,ci.custom=list(exp(confint(reg1)),exp(confint(reg2)),exp(confint(reg3)),exp(confint(reg4))),p.auto=F)
+@
+}
+\end{column}
+\begin{column}{.1\textwidth}
+$\space\space e^{\beta}$ \\
+(C.I.)
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}
+\frametitle{The Acting Races}
+\small
+These models are only preliminary but they do show the sheer predictive power of the Golden Globes and BAFTA award shows that precede the Oscar ceremony. With 95\% confidence, a Leading Actor win at the Golden Globes could raise an Oscar nominees odds, anywhere from 4 to 26 times its previous value! (holding other variables constant, of course). The story is even more drastic for Supporting Actors who have an odds ratio of 13.88 for the Globes with a 95\% confidence interval of [6, 34]
+\end{frame}
+\begin{frame}
+\frametitle{Acting Models II}
+\small
+Notably absent from our first Acting Models are the the results of the Screen Actors Guild Awards. Experts view the SAG as the single most critical moment in determining an Academy Award winner. For our purposes, the SAG awards did not begin until 1995, thus including it in the model imposes a very large penalty to our sample size, which is not enormous to begin with.
+\end{frame}
+\begin{frame}
+\frametitle{Acting Models II expressed in Odds Ratios}
+\resizebox{\textwidth}{!}{%
+<<echo=FALSE,warning=FALSE,results='asis',message=FALSE>>=
+reg1b<-(glm(Won~sag+bafta+globes,df.actor,family=binomial(logit)))
+reg2b<-(glm(Won~sag+bafta+globes,df.actress,family=binomial(logit)))
+reg3b<-(glm(Won~sag+bafta+globes,df.sactor,family=binomial(logit)))
+reg4b<-(glm(Won~sag+bafta+globes,df.sactress,family=binomial(logit)))
+stargazer(reg1b,reg2b,reg3b,reg4b,align=TRUE,dep.var.labels='Won Oscar',column.labels=c('Best Actor','Best Actress','Best Supporting Actor','Best Supporting Actress'),model.numbers=FALSE,font.size='footnotesize',float=F,ci=T,apply.coef=exp,p.auto=F,
+          ci.custom=list(exp(confint(reg1b)),exp(confint(reg2b)),exp(confint(reg3b)),exp(confint(reg4b))))
+
+@
+}
+\end{frame}
+\begin{frame}
+\frametitle{Acting Models II}
+\small
+The SAG's effect on the Oscar odds are interesting. Many of our strongest covariates in our previous models can no longer change the mean log odds for any reasonable confidence level. This is a puzzling feature we will challenge later. These results are supsect to inadequate sample size and multicollinearity, even though my VIF tests did not show it.\\
+
+The results of these alternative models are confusing. An Oscar contender has next to no chance of winning the acting awards without the Screen Acting Guild nod, but \emph{only} if he/she is in the running for the \emph{Lead} award. But it is not signifcant for Supporting Actress! You can see that 1 falls in the bounds of the 95\% confidence interval ($\beta$=0). For Supporting Actor, it is a significant predictor, but does not affect the odds as much as the Golden Globes.
+\end{frame}
+
+\begin{frame}
+\frametitle{The race for Director and Picture}
+\small
+Best Director and Best Picture are the two most closely tied categories at the Oscars. Only 4 films in history have won Best Picture without a Best Director nomination. At the other end, exactly 0 films have won Best Director without a Best Picture nomination.\bigskip
+
+At the same time, there are differences. Direction, like acting is a honed and specific craft while Best Picture is a general claim on the 'best' film. We will try to model these races.
+\end{frame}
+
+\begin{frame}
+\frametitle{Director and Picture Models in Odds Ratios}
+\begin{columns}
+\begin{column}{.6\textheight}
+\resizebox*{!}{\textheight}{%
+<<echo=FALSE,results='asis',warning=FALSE,message=FALSE>>=
+reg5<-(glm(Won~globes+bafta+domestic.gross+edit.nom+script.nom,df.director,family=binomial(logit)))
+reg6<-(glm(Won~globes+bafta+domestic.gross+edit.nom+script.nom+direct.nom,df.picture,family=binomial(logit)))
+stargazer(reg5,reg6,align=TRUE,dep.var.labels='Won Oscar',column.labels=c('Best Director','Best Picture'),model.numbers=FALSE,font.size='footnotesize',float=F,ci=T,apply.coef=exp,p.auto=F,
+          ci.custom=list(exp(confint(reg5)),exp(confint(reg6))))
+
+@
+}
+\end{column}
+\begin{column}{.4\textwidth}
+\footnotesize More surprises occur here. Despite close ties with Best Director, both the Director and Picture races' odds are heavily influenced by the Oscar Editing nominations by an incredible factor of OR=50 and OR=10 respectively. It also seems that the ties between Picture and Director are not as strong as first thought.
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}
+\frametitle{Director and Picture races}
+\small
+This may not provide us with a useful prediction. The editing nomination has an extreme and likely mispecified effect on the log odds of winning Best Picture and Director, but most contenders in these categories will have editing nominations. Meaning, we may be predicting several nominees with probabilities of winning in the upper 90-ith percentile. \bigskip
+
+We also know, like with the SAG awards, the DGAs may provide us a very strong predictor.
+\end{frame}
+
+\begin{frame}
+\frametitle{Director Model II}
+\begin{columns}
+\begin{column}{.7\textwidth}
+\resizebox*{!}{\textheight}{%
+<<echo=FALSE,results='asis',warning=FALSE,message=FALSE>>=
+reg5b<-(glm(Won~globes+bafta+domestic.gross+edit.nom+script.nom+dga,df.director,family=binomial(logit)))
+reg5c<-glm(Won~dga+edit.nom,df.director,family=binomial(logit))
+stargazer(reg5,reg5b,reg5c,align=TRUE,dep.var.labels='Won Oscar',model.numbers=FALSE,font.size='footnotesize',float=F,ci=T,apply.coef=exp,p.auto=F,
+          ci.custom=list(exp(confint(reg5)),exp(confint(reg5b)),
+                         exp(confint(reg5c))))
+@
+}
+\end{column}
+\begin{column}{.3\textwidth}
+\footnotesize
+This is a result similar to including SAG into our nested Acting models. The effects of globes and bafta and others are much reduced when DGA is introduced.
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}
+\small
+The DGA has the benefit of retaining our sample size (unlike the SAG). Before more rigorous model selection, we already see a reduction in AIC and a higher log likelihood than in the previous model. \bigskip
+
+Recall, we believed that a Director's Nomination to be a significant predictor for the Best Picture race. And we also know the DGA is highly correlated with the Director Nomination. Now we have reason to entertain the possibility that the DGA win is the real significant predictor, and Direction nomination has only a spurious correlation with winning the Best Picture race.
+\end{frame}
+
+\begin{frame}
+\frametitle{Picture Model II}
+\begin{columns}
+\begin{column}{.7\textwidth}
+\resizebox*{!}{\textheight}{%
+<<echo=FALSE,results='asis',warning=FALSE,message=FALSE>>=
+reg6b<-glm(Won~globes+bafta+domestic.gross+edit.nom+script.nom+direct.nom+dga,df.picture,family=binomial(logit))
+reg6c<-glm(Won~bafta+edit.nom+dga,family=binomial(logit),df.picture)
+stargazer(reg6,reg6b,reg6c,align=TRUE,dep.var.labels='Won Oscar',model.numbers=FALSE,font.size='footnotesize',float=F,ci=T,apply.coef=exp,p.auto=F,
+          ci.custom=list(exp(confint(reg6)),exp(confint(reg6b)),
+                         exp(confint(reg6c))))
+
+@
+}
+\end{column}
+\begin{column}{.35\textwidth}
+\footnotesize
+Now, a spurious relationship between direct.nom and our dependent seems more likely. Direct.nom seems to have been masking the confounding variable: DGA
+\end{column}
+\end{columns}
+\end{frame}
+
+\begin{frame}
+\frametitle{The Guild factor}
+\small
+Interestingly, we expected all 5 categories to follow their respective guild awards. For acting, it is the Screen Actors Guild Awards and for directors, it is the Directors Guild Awards. Modelling the Actors and Directors without the SAG and DGA results respectively, we find several covariates significantly different from 0, most notably, the respective Golden Globes and BAFTA awards contribute positively and strongly to the logit of winning and oscar. But including the SAG to the acting models and DGA to the director model, these relationships quickly fail or weaken. And even Best Picture seems to follow this patern, despite that the DGAs do not award on the merit of Best Picture. \bigskip
+
+The supporting actor/actresses seem to be the dark horses here, they are much less affected by the guild awards than their leading counterparts.
+\end{frame}
+
+\begin{frame}
+\frametitle{End result}
+\small
+We now have several models, both with and without the inclusion of the guild awards. While the prevalence of the globes and baftas as significant predictors is a good sign, there is still something to be desired.
+\begin{itemize}
+\item We have not been able to find any signifcant characteristics of the nominees (age, ethnicity, past wins...)
+\item We have not been able to find any significant characteristics of the films
+(rating, release date, adapted work)
+\end{itemize}
+All our variables come from the results of previous film awards. For the purpose of prediction, this is satisfactory. But for the purpose of description, these models are fairly bland. Given the drastic bivariate relationships seen in the EDA, we expected more nominee-specific effects to emerge.
+
+\end{frame}
+
+\section{Validation \& Diagnostics}
+\begin{frame}
+\frametitle{Section 4}
+\begin{center}
+\Large
+Cross-validation and Diagnostics
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Post-estimation Diagnostics}
+\begin{itemize}
+\item Check if the model fits the data (Deviance and Chi-square goodness-of-fit)
+\item Check for multicollinearity (Variance inflation Factors)
+\item Check model specification
+\item Check for linearity between covariates and logit
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Cross-Validation}
+\begin{itemize}
+\item Bootstrap
+\item K-fold cross-validation
+\item Historical performance
+\end{itemize}
+\end{frame}
+
+\section{Prediction}
+\begin{frame}
+\frametitle{Section 5}
+\begin{center}
+\Large
+Prediction
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{2014 Predictions}
+<<echo=FALSE,message=FALSE,warning=FALSE>>=
+predicted<-read.csv("/Users/chrisss/Desktop/Project/MATH 396/predicted.csv")
+reg1.predict<-glm(Won~globes+bafta+picture.nom,df.actor,family=binomial(logit))
+fitted1<-predict(object=reg1.predict,newdata=subset(predicted,film.award=='Best Actor'),type='response',se.fit=T)
+
+reg2.predict<-glm(Won~globes+bafta+picture.nom,df.actress,family=binomial(logit))
+fitted2<-predict(object=reg2.predict,newdata=subset(predicted,film.award=='Best Actress'),type='response',se.fit=T)
+
+reg3.predict<-glm(Won~globes+script.nom,df.sactor,family=binomial(logit))
+fitted3<-predict(object=reg3.predict,newdata=subset(predicted,film.award=='Best Supporting Actor'),type='response',se.fit=T)
+
+reg4.predict<-glm(Won~globes+bafta+script.nom,df.sactress,family=binomial(logit))
+fitted4<-predict(object=reg4.predict,newdata=subset(predicted,film.award=='Best Supporting Actress'),type='response',se.fit=T)
+
+reg5.predict<-glm(Won~dga+edit.nom,df.director,family=binomial(logit))
+fitted5<-predict(object=reg5.predict,newdata=subset(predicted,film.award=='Best Director'),type='response',se.fit=T)
+
+fitted6<-predict(object=reg6c,newdata=subset(predicted,film.award=='Best Picture'),type='response',se.fit=T)
+@
+With a working model, our logistic regression model appears as follows:
+\begin{center}{\large $\textup{logit} (p)=\ln (\frac{p}{1-p})=\alpha+\beta X$}
+\end{center}
+We will then transform this, and fit the data for the 2014 Oscar nominees to find predicted probabilities for this year's nominees.
+\begin{center}{$\widehat{p} = \huge \frac{e^{\widehat{\alpha}+\widehat{\beta} X}}{1+e^{\widehat{\alpha}+\widehat{\beta} X}}$}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{2014 data}
+\small
+For now, we will not use the SAG Acting Model for prediction as I am not entirely comfortable making predictions from such a small sample size. Though, we have no qualms using the DGA Models for the Picture and Acting Race. \\
+\textcolor{yellow}{$\bigstar$}denotes the 2014 Screen Actor's Guild Winner \\
+\textcolor{cyan}{$\bigstar$} denotes the 2014 BAFTA winner \\
+\textcolor{red}{$\bigstar$} denotes the 2014 Golden Globes winner \\
+\textcolor{orange}{$\bigstar$} denotes the 2014 Director's Guild Award Winner \\
+\textcolor{violet}{$\bigstar$} denotes the 2014 Critic's Choice award winner, though it is not modelled or used for prediction
+\end{frame}
+
+\begin{frame}[t]
+\frametitle{Best Actress in a Supporting Role}
+\small
+\begin{figure}[t]
+\begin{minipage}{.18\linewidth}
+\includegraphics[width=\linewidth]{hawkins.jpg}
+\\ Sally Hawkins \\
+P=.13$\pm$.03 \\
+
+\end{minipage}
+\begin{minipage}{.18\linewidth}
+\includegraphics[width=\linewidth]{roberts.jpg}
+\\ Julia Roberts \\
+P=.06$\pm$.02 \\
+
+\end{minipage}
+\colorbox{green}{
+\begin{minipage}{.18\linewidth}
+\includegraphics[width=\linewidth]{nyong.jpg}
+\\ Lupita \\ Nyong'o \\
+P=.43$\pm$.10 \\
+\textcolor{yellow}{$\bigstar$}\textcolor{violet}{$\bigstar$}
+\end{minipage}
+}
+\begin{minipage}{.18\linewidth}
+\includegraphics[width=\linewidth]{lawrence.jpg}
+\\ Jennifer Lawrence \\
+P=.42$\pm$.08 \\
+\textcolor{cyan}{$\bigstar$}\textcolor{red}{$\bigstar$}
+\end{minipage}
+\begin{minipage}{.18\linewidth}
+\includegraphics[width=\linewidth]{squibb.jpg}
+\\ June Squibb \\
+P=.13$\pm$.03 \\
+
+\end{minipage}
+\end{figure}
+\textcolor{green}{Prediction}: Lupita Nyong'o wins for 12 Years a Slave
+\end{frame}
+
+\begin{frame}[t]
+\frametitle{Best Actor in a Supporting Role}
+\small
+\begin{figure}[t]
+\begin{minipage}{.18\linewidth}
+\includegraphics[width=\linewidth]{abdi.jpg}
+\\ Barkhad Abdi \\
+P=.11$\pm$.03 \\
+\textcolor{cyan}{$\bigstar$}
+\end{minipage}
+\begin{minipage}{.18\linewidth}
+\includegraphics[width=\linewidth]{cooper.jpg}
+\\ Bradley Cooper \\
+P=.11$\pm$.03 \\
+
+\end{minipage}
+\begin{minipage}{.18\linewidth}
+\includegraphics[width=\linewidth]{hill.jpg}
+\\ Jonah \\ Hill \\
+P=.11$\pm$.03 \\
+
+\end{minipage}
+\begin{minipage}{.18\linewidth}
+\includegraphics[width=\linewidth]{fassbender.jpg}
+\\ {\small Michael Fassbender} \\
+P=.11$\pm$.03 \\
+\end{minipage}
+\colorbox{green}{
+\begin{minipage}{.18\linewidth}
+\includegraphics[width=\linewidth]{leto.jpg}
+\\ Jared \\ Leto \\
+P=.68$\pm$.08 \\
+\textcolor{yellow}{$\bigstar$}\textcolor{red}{$\bigstar$}\textcolor{violet}{$\bigstar$}
+\end{minipage}
+}
+\end{figure}
+\textcolor{green}{Prediction}: Jared Leto wins for Dallas Buyer's Club
+\end{frame}
+
+\begin{frame}[t]
+\frametitle{Best Actress in a Leading Role}
+\small
+\begin{figure}[t]
+\begin{minipage}{.18\linewidth}
+\includegraphics[width=\linewidth]{adams.jpg}
+\\ Amy Adams \\
+P=.16$\pm$.05 \\
+
+\end{minipage}
+\colorbox{green}{
+\begin{minipage}{.18\linewidth}
+\includegraphics[width=\linewidth]{blanchett.jpg}
+\\ Cate \\ Blanchett \\
+P=.62$\pm$.13 \\
+\textcolor{cyan}{$\bigstar$}\textcolor{yellow}{$\bigstar$}\textcolor{red}{$\bigstar$}\textcolor{violet}{$\bigstar$} 
+\end{minipage}
+}
+\begin{minipage}{.18\linewidth}
+\includegraphics[width=\linewidth]{bullokc.jpg}
+\\ Sandra Bullock \\
+P=.16$\pm$.05 \\
+
+\end{minipage}
+\begin{minipage}{.18\linewidth}
+\includegraphics[width=\linewidth]{dench.jpg}
+\\ Judi \\ Dench \\
+P=.15$\pm$.05 \\
+
+\end{minipage}
+\begin{minipage}{.18\linewidth}
+\includegraphics[width=\linewidth]{streep.jpg}
+\\ Meryl Streep \\
+P=.06$\pm$.02 \\
+
+\end{minipage}
+\end{figure}
+\textcolor{green}{Prediction}: Cate Blanchett wins for Blue Jasmine
+\end{frame}
+
+\begin{frame}[t]
+\frametitle{Best Actor in a Leading Role}
+\small
+\begin{figure}[t]
+\begin{minipage}{.18\linewidth}
+\includegraphics[width=\linewidth]{bale.jpg}
+\\ Christian Bale \\
+P=.03$\pm$.03\\
+
+\end{minipage}
+\begin{minipage}{.18\linewidth}
+\includegraphics[width=\linewidth]{bern.jpg}
+\\ Bruce Dern \\
+P=.34$\pm$.03\\
+
+\end{minipage}
+\begin{minipage}{.18\linewidth}
+\includegraphics[width=\linewidth]{dicaprio.jpg}
+\\ Leonardo Dicaprio \\
+P=.12$\pm$.03 \\
+
+\end{minipage}
+\begin{minipage}{.18\linewidth}
+\includegraphics[width=\linewidth]{eljiofor.jpg}
+\\ Chiwetel Ejiofor \\
+P=.36$\pm$.10\\
+\textcolor{cyan}{$\bigstar$}
+\end{minipage}
+\colorbox{green}{
+\begin{minipage}{.18\linewidth}
+\includegraphics[width=\linewidth]{mcconahey.jpg}
+\\ {\footnotesize Matthew McConaughey} \\
+P=.60$\pm$.09\\
+\textcolor{yellow}{$\bigstar$}\textcolor{red}{$\bigstar$}\textcolor{violet}{$\bigstar$} 
+\end{minipage}
+}
+\end{figure}
+\textcolor{green}{Prediction}: Matthew McConaughey wins for Dallas Buyer's Club
+\end{frame}
+
+\begin{frame}[t]
+\frametitle{Best Director}
+\small
+\begin{figure}[t]
+\colorbox{green}{
+\begin{minipage}{.18\linewidth}
+\includegraphics[width=\linewidth]{curaon.jpg}
+\\ Alfonson Cuaron \\
+P=.95$\pm$.03 \\
+\textcolor{cyan}{$\bigstar$}\textcolor{red}{$\bigstar$}\textcolor{orange}{$\bigstar$}\textcolor{violet}{$\bigstar$}
+\end{minipage}
+}
+\begin{minipage}{.18\linewidth}
+\includegraphics[width=\linewidth]{mcqueen.jpg}
+\\ Steve \\ McQueen \\
+P=.06$\pm$.02 \\
+
+\end{minipage}
+\begin{minipage}{.18\linewidth}
+\includegraphics[width=\linewidth]{russell.jpg}
+\\ David O' Russell \\
+P=.06$\pm$.02 \\
+
+\end{minipage}
+\begin{minipage}{.18\linewidth}
+\includegraphics[width=\linewidth]{scorecese.jpg}
+\\ Martin Scorsese \\
+P=.01$\pm$.01\\
+
+\end{minipage}
+\begin{minipage}{.18\linewidth}
+\includegraphics[width=\linewidth]{payne.jpg}
+\\ Alexander Payne \\
+P=.01$\pm$.01 \\
+\end{minipage}
+\end{figure}
+\textcolor{green}{Prediction}: Alfonso Cuaron wins for Gravity
+\end{frame}
+
+\begin{frame}
+\frametitle{Best Picture}
+\footnotesize
+\begin{itemize}
+\item American Hustle (P = 0.051$\pm$.02)
+\item Captain Phillips (p = 0.051$\pm$.02)
+\item Dallas Buyers Club (P = 0.051$\pm$.02)
+\item \colorbox{green}{Gravity (P = 0.85$\pm$.07)} \textcolor{orange}{$\bigstar$}
+\item Her (P = 0.00$\pm$.00)
+\item Nebraska (P = 0.00$\pm$.00)
+\item Philomena (P = 0.00$\pm$.00)
+\item 12 Years a Slave (P = 0.24$\pm$.11)\textcolor{cyan}{$\bigstar$}\textcolor{red}{$\bigstar$}\textcolor{violet}{$\bigstar$}
+\item The Wolf of Wallstreet (P = 0.00$\pm$.00)
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Bookies vs. Models: March 2nd, 2014}
+We will take the most popular betting odds made by prominent bookies and translate them into implied probabilities. We will then compare our models' probabilities to the bookies'. Note, betting odds are dstinct from the odds we have defined.
+<<echo=FALSE,results='asis'>>=
+bet1<-cbind('Betting Odds'=c("125/1","55/1","11/2","20/1","3/10"),
+            'Implied Probability'=round(c(1/(125+1),1/(55+1),2/(11+2),1/(20+1),10/(10+3)),digits=3),
+            'Probability'=round(fitted1$fit,digits=3))
+row.names(bet1)<-subset(predicted,film.award=='Best Actor')$film.person
+bet2<-cbind('Betting Odds'=c('20/1','1/25','33/1','40/1','100/1'),
+            'Implied Probability'=round(c(1/(20+1),25/(25+1),1/(33+1),1/(40+1),1/(100+1)),digits=3),
+            'Probability'=round(fitted2$fit,digits=3))
+row.names(bet2)<-subset(predicted,film.award=='Best Actress')$film.person
+bet3<-cbind('Betting Odds'=c('16/1','100/1','14/1','66/1','1/12'),
+            'Implied Probability'=round(c(1/(16+1),1/(100+1),1/(14+1),1/(66+1),12/(12+1)),digits=3),
+            'Probability'=round(fitted3$fit,digits=3))
+row.names(bet3)<-subset(predicted,film.award=='Best Supporting Actor')$film.person
+bet4<-cbind('Betting Odds'=c('50/1','7/5','5/6','66/1','50/1'),
+            'Implied Probability'=round(c(1/(50+1),5/(7+5),6/(5+6),1/(66+1),1/(50+1)),digits=3),
+            'Probability'=round(fitted4$fit,digits=3))
+row.names(bet4)<-subset(predicted,film.award=='Best Supporting Actress')$film.person
+bet5<-cbind('Betting Odds'=c('66/1','1/16','150/1','14/1','100/1'),
+            'Implied Probability'=round(c(1/(66+1),16/(1+16),1/(150+1),1/(14+1),1/(100+1)),digits=3),
+            'Probability'=round(fitted5$fit,digits=3))
+row.names(bet5)<-subset(predicted,film.award=='Best Director')$film.person
+bet6<-cbind('Betting Odds'=c('22/1','250/1','40/1','7/2','250/1','250/1','250/1','1/3','66/1'),
+            'Implied Probability'=round(c(1/(22+1),1/(1+250),1/(40+1),2/(7+1),
+                                          1/(250+1),1/(250+1),1/(250+1),3/(1+3),1/(66+1)),digits=3),
+            'Probability'=round(fitted6$fit,digits=3))
+row.names(bet6)<-subset(predicted,film.award=='Best Picture')$film
+latex(rbind(bet1,bet2),rowlabel='Nominee',cgroup=c('Bookie spread','Model prediction'),n.cgroup=c(2,1),
+      rgroup=c('Lead Actor','Lead Actress'),n.rgroup=c(5,5),col.just=c('c','c','c'))
+latex(rbind(bet1,bet2,bet3,bet4),rowlabel='Nominee',cgroup=c('Bookie spread','Model prediction'),n.cgroup=c(2,1),
+      rgroup=c('Lead Actor','Lead Actress','Supporting Actor','Supporting Actress'),n.rgroup=c(5,5,5,5),col.just=c('c','c','c'))
+latex(rbind(bet5,bet6),rowlabel='Nominee',cgroup=c('Bookie spread','Model prediction'),n.cgroup=c(2,1),col.just=c('c','c','c'),
+      rgroup=c('Best Director','Best Picture'),n.rgroup=c(5,9))
+latex(bet6,rowlabel='Nominee',cgroup=c('Bookie spread','Model prediction'),n.cgroup=c(2,1),col.just=c('c','c','c'))
+@
+\end{frame}
+\begin{frame}
+\frametitle{Supporting Race}
+\end{frame
+\begin{frame}{Director Race}
+\end{frame}
+\begin{frame}
+\frametitle{Picture Race}
+\end{frame}
+
+\begin{frame}
+\frametitle{Where to go from here?}
+I will get more information once the 2014 Academy Awards have finished. However, some shortcomings and improvements are already evident. First, I must run rigorous diagnostics and validation methods on my models. I am very suspicious that my models are overfit.\\
+Second, further analysis is necessary on the anomaly of my regular Acting and Directing Models, and the SAG-enhanced and DGA-enhanced models. The SAG and DGA variables are neither interacting nor multicollinear based on VIF and inclusion of interaction terms.
+\end{frame}
+
+\end{document}
+

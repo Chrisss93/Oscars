@@ -1,0 +1,1 @@
+This is my independent project to model the Academy Awards for 6 major races: Lead Actor, Lead Actress, Supporting Actor, Supporting Actress, Direction and Picture. The data, code and analysis is current as of the 2014 Oscar ceremony and it will be updated each following year for the foreseeable future.

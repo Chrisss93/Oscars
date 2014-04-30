@@ -1,0 +1,458 @@
+\documentclass[jou,apacite]{apa6}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{dcolumn}
+\urlstyle{same}
+
+\title{Applying logisitic regression framework to predict Academy Awards}
+\shorttitle{Predicting the Academy Awards}
+
+\author{Christopher Lee}
+\affiliation{}
+
+\abstract{The Academy Awards are the most important event in the Hollywood film industry. Winning an Academy Award is not only prestigious but financially lucrative for a film's box office revenue, a nominee's future earnings and the large speculative market that has developed around the annual award show. This study will attempt to model the outcome of the Academy Awards with data from a period of 1970 to 2013 and identify significant covariates for Academy Award success for the four acting categories, the directing award and the best picture award. The paper will conclude with the model's predictions for the 2014 Academy Award winners and review the predictions against the resulting winners.}
+
+\rightheader{Academy Awards}
+\leftheader{Christopher Lee}
+
+\begin{document}
+\maketitle    
+                        
+\section{Introduction}
+The Hollywood film industry has well-defined seasonal activity. The summer season is dedicated towards large grossing Blockbuster films, while the late fall (December and November) is the release target for films looking to be competitive during the awards season. The award season begins January and concludes with the most important event of the industry: the Academy Awards. The Academy Awards stand apart from the other award shows as the final and definitive award show of the year. For reasons of prestige, and perceived increases in box-office revenue,  campaigning for Oscars is a huge and expensive endeavor. There is also intense public intrigue and well-endowed prediction markets, as the Academy Awards is a widely viewed televised event and one of the largest non-sporting events for speculative betting.
+
+This paper discusses the challenge of identifying covariates and variables which have an effect on the odds of winning an Academy Award. There have been several papers which have addressed this topic. Most notably, a study with similar motivations and methods appeared before the 2008 Oscar Ceremonies \cite{pardoe08}. Other papers attempt other modelling techniques for Academy Award prediction \cite{silver13}, \cite{bernard05}, \cite{forecast13}, \cite{ghomi13} \cite{krauss08} which range from analyzing social networks to polling data and even Twitter activity.
+
+This paper makes no claim to have found or imply a set of characteristics that produce the 'best film' nor does this study present models outlining voting behaviour among the members of the Academy of Motion Picture Arts and Sciences. The purpose of this paper is solely to identify covariates which change the odds of winning a select group of awards at the Oscar ceremonies. In doing so, we set aside any claims on 'the best film of the year' or having identified voting preferences from AMPAS members. This study merely address what factors can contribute to Oscar success, whether or not the Oscars themselves are fair meritocracies or biased elections.
+
+\subsection{Data}
+To address this question, this paper uses data that has been web-scrapped from several sources of publically accessible web domains, including imdb.com, boxofficemojo.com and metacritic.com. This study has created a dataset with several quantitative and qualitative variables. The data records box office revenue and production budgets, nominee information (age, past Oscar record, ethnicity, etc.), film details (genre, rating, topic, etc.) and Oscar results from the years 1970 to 2013. In addition this study gathers data from the most relevant preceding film awards, that is, the Golden Globe Awards, the British Academy of Film and Television Arts Awards (BAFTA), the Screen Actors Guild Awards (SAG), the Directors Guild Awards (DGA), the Writer's Guild Awards (WGA), the American Cinema Editors Award (Eddie) and the Critics Choice Awards. An effort will be made to preserve the limited sample size of this data wherever possible. Many variables are truncated as they were only recently created/recorded. Given a reasonable level of statistical power, it would not be appropriate to introduce these variables into the models for many years.
+
+\subsection{Descriptives}
+Several key traits among nominees are identified as having potentially strong effects on the odds of winning an Oscar. This study has collected data on the MPAA rating, release date, genre and subject matter of the nominee pool. Many of these classifications are interesting, in that they present an image of the general tastes and preferences of the Academy. It is unclear whether the Academy favors films that have late fall release dates or if the most worthy films are released during those dates. Regardless, the months of November and December claim a disproportionate share of Oscar nominees and winners, in terms of the films' month of release. Equally as telling, is the proportion of genres and ratings where we see a very strong results for dramas and R-rated films.
+
+We examine the proportions and means of these characteristics and any differences between the sample of nominees, and sample of winners. This study seeks to predict the winner selection rather than the nominee selection therefore many of these traits are of less use to us than the differential between nominees and winners shown in Table~\ref{tab1}.
+\begin{table}
+\caption{Mean and proportions of descriptives}\label{tab1}
+\begin{center}
+\begin{tabular}{lrr}
+\hline\hline
+\multicolumn{1}{l}{}&\multicolumn{1}{c}{Nominees}&\multicolumn{1}{c}{Winners}\tabularnewline
+\hline
+{\bfseries Genre}&&\tabularnewline
+~~drama&$  0.909$&$  0.898$\tabularnewline
+~~comedy&$  0.213$&$  0.200$\tabularnewline
+~~biopic&$  0.220$&$  0.238$\tabularnewline
+~~rom&$  0.234$&$  0.238$\tabularnewline
+~~action&$  0.094$&$  0.087$\tabularnewline
+\hline
+{\bfseries Film Traits}&&\tabularnewline
+~~Runtime (min.)&$125.217$&$130.626$\tabularnewline
+~~TIFF premiere&$  0.193$&$  0.170$\tabularnewline
+~~Nov./Dec. release&$  0.503$&$  0.547$\tabularnewline
+~~Domestic.Gross\tabfnm{a}&$ 59.581$&$ 88.640$\tabularnewline
+~~Budget\tabfnm{a}&$ 28.245$&$ 26.494$\tabularnewline
+~~adapted&$  0.592$&$  0.574$\tabularnewline
+~~R.rated&$  0.576$&$  0.574$\tabularnewline
+~~Hot topic\tabfnm{b}&$  0.196$&$  0.249$\tabularnewline
+~~Dark topic\tabfnm{c}&$  0.220$&$  0.272$\tabularnewline
+\hline
+{\bfseries Nominee Traits}&&\tabularnewline
+~~age&$ 44.915$&$ 45.582$\tabularnewline
+~~white&$  0.909$&$  0.900$\tabularnewline
+~~black&$  0.050$&$  0.055$\tabularnewline
+~~american&$  0.715$&$  0.732$\tabularnewline
+~~british&$  0.149$&$  0.127$\tabularnewline
+\hline
+\end{tabular}\end{center}
+{\small
+\tabfnt{a}{\emph{Measured in million USD}}
+\tabfnt{b}{\emph{Contains the following keywords: "racism, slavery, gay rights, abortion, poverty, aids, hiv or homophobia" }}
+\tabfnt{c}{\emph{Contains the following keywords: "terrorism, rape, gang violence, sex trade, human trafficking, torture, heroin, cocaine, serial killer or mass murderer"}}}
+\end{table}
+
+Many of the more jarring descriptives such as ninety percent of the nominee pool being dramas are less impactful because the respective winner pool has a similarly steep mean. We see very little variation between the means of nominees vs. winners. This makes it difficult to distinguish whether or not these traits affect the odds of winning an Oscar or merely affecting the odds of being included in the sample (being nominated). It seems that, in terms of film/nominee traits, the sample of nominees and winners are mostly indistinguishable by the criterion we have considered thus far. Their discrimination for the winner selection may be carried out by means which we do not the ability to capture (i.e. personal taste, artistic merit, significance, quality ect.)
+
+\subsection{Co-movement of the Award Season}
+The award season for the film industry, culminating in the Oscar ceremony, is closely followed and valued as important events which affect nominees' odds at the Academy Awards. Preceding film award shows such as the Golden Globes, BAFTA awards and recently the Critic's Choice awards all confer equivalent awards to the Oscars while the professional guild award shows (WGA, SAG, DGA, PGA etc.) specialize in awards inherent to their respective crafts. Even so, the co-movement between all these events and the Oscars are incredible, considering the voting bodies of each event differ in composition, size and selection procedures.  Academy Award winners are voted upon by members of the Academy for Motion Picture Arts and Sciences (AMPAS) of an  electorate of approximately 6,000 voters. AMPAS uses a complex preferential system and the electoral equivalent of a \emph{single transferable vote} for the nomination process and a plurality vote to select the winner - except for Best Picture, which continues a preferential voting system \cite{decision04}. The Golden Globes are voted on by members of the Hollywood Foreign Press Association that normally has fewer than 100 active members eligible to vote - none of which are members of the voting body of AMPAS. The BAFTAs are voted on by 6,000 with plurality vote with a sizeable cross-over between voting bodies, and professional guild awards are decided by guild members with plurality vote.
+
+The Golden Globes are the furthest removed from the Oscars but it is perceived as the most relevant event preceding the Academy Awards. In Table~\ref{tab2} we examine the historical performance of all the major award shows for the 6 races to see how often precursor award-winners wins the respective Oscar prize. In all categories, the Golden Globe select the Oscar winner roughly half the time while the Directors Guild Awards boast an eighty-two and eighty-six percent success rate for predicting the Oscar directing and Picture races respectively.
+
+\begin{table}
+\caption{Accuracy of precursor awards for future Oscar winners}\label{tab2}
+\begin{center}
+\begin{tabular}{lcccc}
+\hline\hline
+\multicolumn{1}{l}{Oscar Won}&\multicolumn{1}{c}{Globes}&\multicolumn{1}{c}{BAFTA}&\multicolumn{1}{c}{SAG}&\multicolumn{1}{c}{Critics'}\tabularnewline
+\hline
+{\bfseries Leading}&&&&\tabularnewline
+~~Actor&$0.61$&$0.41$&$0.79$&$0.67$\tabularnewline
+~~Actress&$0.55$&$0.41$&$0.68$&$0.44$\tabularnewline
+\hline
+{\bfseries Supporting}&&&&\tabularnewline
+~~Actor&$0.66$&$0.23$&$0.58$&$0.44$\tabularnewline
+~~Actress&$0.48$&$0.34$&$0.63$&$0.50$\tabularnewline
+\hline
+~~Director&$0.52$&$0.30$&$$&$0.78$\tabularnewline
+~~Picture&$0.51$&$0.38$&$$&$0.58$\tabularnewline
+\hline\hline
+\multicolumn{1}{l}{}&\multicolumn{1}{c}{DGA}&\multicolumn{1}{c}{Eddie}&\multicolumn{1}{c}{WGA}&\multicolumn{1}{c}{PGA}\tabularnewline
+\hline
+~~Director&$0.86$&$0.48$&$0.48$&$0.63$\tabularnewline
+~~Picture&$0.82$&$0.51$&$0.53$&$0.71$\tabularnewline
+\hline
+\end{tabular}\end{center}
+\end{table}
+
+Further still, in the event of consensus, an Oscar winner is all but determined. In history, the Golden Globes, BAFTAs, Critic's Choice and SAG awards have agreed upon seven actors, three actresses, four supporting actors and five supporting actresses. Only two such times (Russell Crowe in \emph{A Beautiful Mind} and Jessica Chastain in \emph{The Help}) has the consensus choice failed to win the Oscar. Meanwhile, the ACE Eddies and DGA have agreed on nineteen directors (all of which went on to win the Oscar for Best Directing) and twenty films where all but \emph{Saving Private Ryan} won the Best Picture race at the Oscars. Daniel Day-Lewis and Steven Spielberg remain the only two individuals who have twice been the consensus choice.
+
+\section{Methodology}
+ This paper will focus on modelling and prediction for the six most important award races of the Oscars: Best Actor in a Leading Role, Best Actress in a Leading Role, Best  Actor in a Supporting Role, Best  Actress in a Supporting Role, Best Directing and Best Picture. 
+ To do this, this we employ a logistic regression framework to identify key predictors of Academy Award success. The logistic regression framework has been found appropriate for this problem, as the dependent variable is a binary vector reporting a value of 1 if a film has won an Academy Award in one of six categories, and 0 otherwise. On the issue of dependence between observations, we follow the precedence of previous literature on Academy Award prediction. Given an award category, every year there must necessarily exist one observation which reports a 1 which forces all other observations which report 0, because the awards are competitive and exclusive. By removing any temporal variables, we remove  the yearly dimension and avoid observational dependence. We treat the remainder of the analysis as though there are 220 nominees all in a stationary time period, and we are classifying 44 of them as winners simultaneously.
+
+\subsection{Estimation}
+Preliminary models first include all relevant awards, given the high differences in the proportions of Oscar nominees and Oscar winners. Attempts are made to classify winners according to film/nominee traits, however they are not nearly as strong. In variable selection, this study heeds a series of commonly held expert/pundit views on the Academy Awards. These views are as follows: (1) Serious Oscar contenders for Best Picture have secured nominations in Editing and most importantly, Directing. (2) Guild awards are the strongest predictors of Oscar winners in guild-specific races. (3) Biographical feature films are highy favored by the Academy. (4) November/December release dates are indicative of highly competitive films. (5) The four acting races are largely similar to one another.
+
+We first fit saturated model including all variables except those which have very high missing value rates (SAG, Critic Choice, budget). We must resign ourselves to the fact that
+for reasons of inadequate sample size, we cannot hope to include SAG and maintain an appropriate level statistical power despite exploratory analysis and a priori reasoning showing the SAG to be a crucial predictor of Oscar success.
+\subsection{Model Selection}
+We consider several criteria for model selection including the receiver operator characteristic ($ROC$) curve and its $AUC$, which measures the models's true positives (sensitivity) against its false positives (1 - specificity). We also consider information theoretic criteria such as the Bayesian information criterion ($BIC$), Aikake information criterion ($AIC$) and the second-order AIC ($AIC_c$) which asymptotically converges to $AIC$ but is proven to correct the systematic overfitting of $AIC$ \cite{raftery} in small samples \cite{Burnham04}. These criteria will be used  to perform backwards stepwise regression which minimizes the information criteria.
+
+Which criteria should be used and when has been discussed in model selection literature. Very generally, the BIC will select the model with the greatest posterior probability (the \emph{true} model in the set) while the AIC will find the model that minimizes the expected Kullback-Leibler Information loss (the best approximation to a full reality model). We have strong a priori reason to believe that the \emph{true} model, even if it exists, is not captured in our model set (exclusion of SAG is one of many reasons). But others \cite{Burnham04} argue the BIC's controversial assumption that \emph{there exists a true model from which data was generated} is exaggerated and only holds asymptotically at that. Burnham \& Anderson go on to state that the correct criteria should not be determined by philosphical dichotomies between frequentist and Bayesian perspectives but by measurable performance. To this end we will select $BIC$, $AIC$ and $AIC_c$ and choose the criteria whose subsequent models demonstrate the lowest classification error. The more conservative and parsimonious BIC models are shown in Table 3 while the larger $AIC_c$ models are in the Appendix.
+
+\section{Results}
+\begin{table*}
+\caption{Backwards stepwise $BIC$ selection}\label{tab3}
+\resizebox*{\textwidth}{!}{%
+\begin{tabular}{@{\extracolsep{5pt}}lD{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} } 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{6}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-7} 
+\\[-1.8ex] & \multicolumn{6}{c}{Won Oscar} \\ 
+ & \multicolumn{1}{c}{Best Actor} & \multicolumn{1}{c}{Best Actress} & \multicolumn{1}{c}{Best Supporting Actor} & \multicolumn{1}{c}{Best Supporting Actress} & \multicolumn{1}{c}{Best Director} & \multicolumn{1}{c}{Best Picture} \\ 
+\hline \\[-1.8ex] 
+ globes & 10.489^{***} & 8.223^{***} & 19.130^{***} & 4.294^{***} &  &  \\ 
+  & \multicolumn{1}{c}{(4.689$, $24.523)} & \multicolumn{1}{c}{(3.757$, $18.485)} & \multicolumn{1}{c}{(8.455$, $46.615)} & \multicolumn{1}{c}{(1.989$, $9.356)} &  &  \\ 
+ bafta & 4.411^{***} & 4.992^{***} &  & 5.239^{***} &  & 7.462^{***} \\ 
+  & \multicolumn{1}{c}{(1.781$, $11.064)} & \multicolumn{1}{c}{(2.105$, $11.947)} &  & \multicolumn{1}{c}{(2.160$, $12.874)} &  & \multicolumn{1}{c}{(1.698$, $36.338)} \\ 
+ script.nom & 3.882^{**} &  &  &  &  &  \\ 
+  & \multicolumn{1}{c}{(1.461$, $11.969)} &  &  &  &  &  \\ 
+ comedy &  &  & 3.536^{***} &  &  &  \\ 
+  &  &  & \multicolumn{1}{c}{(1.361$, $9.343)} &  &  &  \\ 
+ edit.nom &  &  & 3.003^{**} & 2.867^{***} &  & 9.056^{**} \\ 
+  &  &  & \multicolumn{1}{c}{(1.296$, $7.279)} & \multicolumn{1}{c}{(1.340$, $6.144)} &  & \multicolumn{1}{c}{(1.517$, $79.095)} \\ 
+ eddie &  &  &  &  & 7.058^{**} & 6.584^{***} \\ 
+  &  &  &  &  & \multicolumn{1}{c}{(1.457$, $34.582)} & \multicolumn{1}{c}{(1.732$, $27.979)} \\ 
+ dga &  &  &  &  & 321.080^{***} & 117.394^{***} \\ 
+  &  &  &  &  & \multicolumn{1}{c}{(83.470$, $1,780.902)} & \multicolumn{1}{c}{(32.390$, $605.544)} \\ 
+ wga &  &  &  &  &  & 6.181^{***} \\ 
+  &  &  &  &  &  & \multicolumn{1}{c}{(1.758$, $26.416)} \\
+ Constant & 0.030^{***} & 0.092^{***} & 0.040^{***} & 0.082^{***} & 0.023^{***} & 0.001^{***} \\ 
+  & \multicolumn{1}{c}{(0.009$, $0.077)} & \multicolumn{1}{c}{(0.052$, $0.152)} & \multicolumn{1}{c}{(0.016$, $0.087)} & \multicolumn{1}{c}{(0.043$, $0.142)} & \multicolumn{1}{c}{(0.007$, $0.055)} & \multicolumn{1}{c}{(0.0001$, $0.011)} \\ 
+  & & & & & & \\ 
+\hline \\[-1.8ex] 
+Observations & \multicolumn{1}{c}{220} & \multicolumn{1}{c}{221} & \multicolumn{1}{c}{221} & \multicolumn{1}{c}{221} & \multicolumn{1}{c}{221} & \multicolumn{1}{c}{239} \\ 
+BIC & \multicolumn{1}{c}{176.733} & \multicolumn{1}{c}{188.641} & \multicolumn{1}{c}{177.244} & \multicolumn{1}{c}{202.455} & \multicolumn{1}{c}{84.479} & \multicolumn{1}{c}{106.654} \\
+Area under ROC & \multicolumn{1}{c}{0.856} & \multicolumn{1}{c}{0.794} & \multicolumn{1}{c}{0.838} & \multicolumn{1}{c}{0.768} & \multicolumn{1}{c}{0.944} & \multicolumn{1}{c}{0.974} \\
+\hline 
+\hline \\[-1.8ex] 
+\normalsize
+\end{tabular}
+}
+\begin{tablenotes} {\footnotesize \emph{Note:} Values are in terms of odds ratios and 95\% exponentiated confidence intervals. $^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01}
+\end{tablenotes}
+\end{table*}
+
+The regression analysis follows conventional wisdom as it relates to the relationship between film award shows. Indeed, there appears to be considerable co-movement between the Golden Globes Awards, the BAFTA awards and the Oscars. An important feature identified by the models is the spurious relationship between winning incidence for Best Picture and Oscar nominations for Best Directing, Editing and Screenplay. As only four nominees in history have won Best Picture without first being nominated for Best Directing (Argo being the most recent) and only three nominees have won without a Best Editing nomination (last in 1981), popular belief is that director and editing nominations are reliable signals of a solid Best Picture contender. Indeed, preliminary models of the Best Picture race agree but upon the introduction of the DGA and Eddie variables (which award for director and editing respectively), the previous directing and editing nomination variables have large changes in coefficient values, or else lose predictive power. We can safely identify the DGA and Eddies as confounding factors for the widely held belief of direct causal links between Best Picture and nominations for Best Directing and Best Editing. By supplementing the director nomination and editing nomination with their respective confounders, we find substantial increases in all measures of goodness-of-fit.
+
+Another surprising fact is that among the four acting races, the BIC models show homogeneity between Lead Actor and Lead Actress but the Supporting races differ greatly in effect size and composition. The differences between Lead and Supporting races have often been blurred in the media but the analysis shows the races may be far from similar. This may follow from a belief that Supporting awards are less prestigious than Lead awards, though distinguishing between Lead and Supporting roles is often vague and unfounded. For example, Al Pacino was nominated for a Supporting Role in \emph{The Godfather} despite having more screentime than co-star and eventual Lead Actor winner Marlon Brando. This contrasts with Beatrice Straight, who secured a Supporting Actress Oscar in \emph{The Network} with a total of five minutes and forty seconds of screentime - four percent of the runtime.
+
+\subsection{Validation}
+For other studies, internal validation would be based off a classification rule, say $\widehat{p} > .5$, to determine the necessary predicted reponse probability to be considered a predicted event. In our models, we must define a predicted event differently. Because only one award may (and must) be conferred per category each year, we define a predicted event to be the nominee with the highest probability in that specific year and category. In the very rare event that two competing nominees have equal predicted probabilities, they are both predicted as the winner. Previous literature \cite{steyerberg01}, \cite{austin04} have suggested bootstrap validation as another method which may perform favorably against K-fold cross validation methods (i.e. 10-fold, jackknife ect.).
+\begin{table*}
+\caption{Confusion matrices for all 6 races}
+{\footnotesize
+\begin{minipage}{.33\textwidth}
+\caption*{Lead Actor}
+\begin{tabular}{lrr}
+\hline\hline
+\multicolumn{1}{l}{}&\multicolumn{1}{c}{\bfseries{Real}}&\multicolumn{1}{c}{}\tabularnewline
+&\multicolumn{1}{c}{\scriptsize Lost}&\multicolumn{1}{c}{\scriptsize Won}\tabularnewline
+\hline
+{\bfseries Predicted}&&\tabularnewline
+~~Lost&$158$&$15$\tabularnewline
+~~Won&$ 18$&$29$\tabularnewline
+\hline
+\end{tabular} \\ \\
+\begin{tablenotes}
+\item Internal Accuracy: .85 \\
+ Jackknife Estimate: .85
+\end{tablenotes}
+\end{minipage}
+\begin{minipage}{.33\textwidth}
+\caption*{Supporting Actor}
+\begin{tabular}{lrr}
+\hline\hline
+\multicolumn{1}{l}{}&\multicolumn{1}{c}{\textbf{Real}}&\multicolumn{1}{c}{}\tabularnewline
+&\multicolumn{1}{c}{{\scriptsize Lost}}&\multicolumn{1}{c}{{\scriptsize Won}}\tabularnewline
+\hline
+{\bfseries Predicted}&&\tabularnewline
+~~Lost&$158$&$15$\tabularnewline
+~~Won&$ 19$&$29$\tabularnewline
+\hline
+\end{tabular} \\ \\
+\begin{tablenotes}
+\item Internal Accuracy: .846 \\
+Jackknife Estimate: .845
+\end{tablenotes}
+\end{minipage}
+\begin{minipage}{.33\textwidth}
+\caption*{Direction}
+\begin{tabular}{lrr}
+\hline\hline
+\multicolumn{1}{l}{}&\multicolumn{1}{c}{\textbf{Real}}&\multicolumn{1}{c}{}\tabularnewline
+&\multicolumn{1}{c}{{\scriptsize Lost}}&\multicolumn{1}{c}{{\scriptsize Won}}\tabularnewline
+\hline
+{\bfseries Predicted}&&\tabularnewline
+~~Lost&$170$&$4$\tabularnewline
+~~Won&$ 7$&$40$\tabularnewline
+\hline
+\end{tabular} \\ \\
+\begin{tablenotes}
+\item Internal Accuracy: .955 \\
+Jackknife Estimate: .931
+\end{tablenotes}
+\end{minipage}
+\\ \\
+\begin{minipage}{.33\textwidth}
+\caption*{Lead Actress}
+\begin{tabular}{lrr}
+\hline\hline
+\multicolumn{1}{l}{}&\multicolumn{1}{c}{\bfseries{Real}}&\multicolumn{1}{c}{}\tabularnewline
+&\multicolumn{1}{c}{\scriptsize Lost}&\multicolumn{1}{c}{\scriptsize Won}\tabularnewline
+\hline
+{\bfseries Predicted}&&\tabularnewline
+~~Lost&$157$&$20$\tabularnewline
+~~Won&$ 20$&$24$\tabularnewline
+\hline
+\end{tabular} \\ \\
+\begin{tablenotes}
+\item Internal Accuracy: .819 \\
+ Jackknife Estimate: .782
+\end{tablenotes}
+\end{minipage}
+\begin{minipage}{.33\textwidth}
+\caption*{Supporting Actress}
+\begin{tabular}{lrr}
+\hline\hline
+\multicolumn{1}{l}{}&\multicolumn{1}{c}{\textbf{Real}}&\multicolumn{1}{c}{}\tabularnewline
+&\multicolumn{1}{c}{{Lost}}&\multicolumn{1}{c}{{Won}}\tabularnewline
+\hline
+{\bfseries Predicted}&&\tabularnewline
+~~Lost&$152$&$17$\tabularnewline
+~~Won&$ 25$&$27$\tabularnewline
+\hline
+\end{tabular} \\ \\
+\begin{tablenotes}
+\item Internal Accuracy: .81 \\
+Jackknife Estimate: .81
+\end{tablenotes}
+\end{minipage}
+\begin{minipage}{.33\textwidth}
+\caption*{Picture}
+\begin{tabular}{lrr}
+\hline\hline
+\multicolumn{1}{l}{}&\multicolumn{1}{c}{\textbf{Real}}&\multicolumn{1}{c}{}\tabularnewline
+&\multicolumn{1}{c}{{Lost}}&\multicolumn{1}{c}{{Won}}\tabularnewline
+\hline
+{\bfseries Predicted}&&\tabularnewline
+~~Lost&$188$&$7$\tabularnewline
+~~Won&$ 6$&$38$\tabularnewline
+\hline
+\end{tabular} \\ \\
+\begin{tablenotes}
+\item Internal Accuracy: .946 \\
+Jackknife Estimate: .934
+\end{tablenotes}
+\end{minipage}
+}
+\end{table*}
+
+However, because our classfication rule relies on all predicted probabilities in the same year, normal resampling with replacement and data-splitting procedures will not perform well. Random resampling and cross-validation may result in scenarios where nominees in the same year are partitioned into seperate folds. In this case our classification rule would perform disastrously. Instead we cross-validate by partitioning across years, rather than across observations. The accuracy of the models are cross-validated with the Jackknife (leave-one-out) procedure. Rather than n-1 folds, we have r-1 folds where \emph{r} is the number of years in the datasets.
+
+Limitations in stepwise regression have been noted for inclusion of noise variables and spurious relationships in the event of collinearity \cite{harell03}. Given that we are including several film awards variables which are designed to quantify the same thing, collinearity would appear to be a diagnostic issue. However using variance inflation factors, we see there are no factors greater than 3 and strangely there is little multicollinearity between precursor award shows.
+
+\subsection{2014 Prediction and Results}
+For both internal validation and cross-validation, the $AIC_c$ models perform better than the $BIC$ models and the small-sample correction $AIC_c$ targets the same models as $AIC$. Using the $AIC_c$ models in this study, predicted probabilities for the 2014 Oscar nominees are calculated and compared with the implied probabilities taken from the modal fractional betting odds of major bookies, an hour before the 2014 ceremony. We select the candidate with the highest predicted probability as our official prediction for the Oscar winner. The results are shown in Table ~\ref{tab4}.
+
+\begin{table}[b]
+\caption{2014 Oscars: Predictions (Winner and Runner-up)}\label{tab4}
+\begin{center}
+\resizebox*{.45\textwidth}{!}{%
+\begin{tabular}{lcccc}
+\hline\hline
+\multicolumn{1}{l}{\bfseries Nominees}&\multicolumn{2}{c}{\bfseries Bookies}&\multicolumn{1}{c}{\bfseries }&\multicolumn{1}{c}{\bfseries Models}\tabularnewline
+\cline{2-3} \cline{5-5}
+\multicolumn{1}{l}{}&\multicolumn{1}{c}{Odds}&\multicolumn{1}{c}{Implied \emph{p}}&\multicolumn{1}{c}{}&\multicolumn{1}{c}{$\widehat{p}$}\tabularnewline
+\hline
+{\bfseries Best Leading Actor}&&&&\tabularnewline
+~~\emph{Matthew McConaughey} $^\ast$&3/10&$0.769$&&$0.729$\tabularnewline
+~~Chiwetel Ejiofor&20/1&$0.048$&&$0.404$\tabularnewline
+\hline
+{\bfseries Best Leading Actress}&&&&\tabularnewline
+~~\emph{Cate Blanchett} $^\ast$&1/25&$0.962$&&$0.674$\tabularnewline
+~~Amy Adams&20/1&$0.048$&&$0.232$\tabularnewline
+\hline
+{\bfseries Best Supporting Actor}&&&&\tabularnewline
+~~\emph{Jared Leto} $^\ast$&1/12&$0.923$&&$0.836$\tabularnewline
+~~Jonah Hill&66/1&$0.015$&&$0.239$\tabularnewline
+\hline
+{\bfseries Best Supporting Actress}&&&&\tabularnewline
+~~\emph{Lupita Nyong'o} $^\ast$&5/6&$0.545$&&$0.465$\tabularnewline
+~~Jennifer Lawrence&7/5&$0.417$&&$0.383$\tabularnewline
+\hline
+{\bfseries Best Directing}&&&&\tabularnewline
+~~\emph{Alfonso Cuaron} $^\ast$&1/16&$0.941$&&$0.922$\tabularnewline
+~~David O. Russell&66/1&$0.015$&&$0.032$\tabularnewline
+\hline
+{\bfseries Best Picture}&&&&\tabularnewline
+~~\emph{Gravity}&7/2&$0.222$&&$0.470$\tabularnewline
+~~Captain Phillips&250/1&$0.004$&&$0.170$\tabularnewline
+~~12 Years a Slave $^\ast$&1/3&$0.750$&&$0.156$\tabularnewline
+\hline
+\end{tabular}}\end{center}
+\begin{tablenotes}{\footnotesize
+\emph{Prediction}, * = winner}\end{tablenotes}
+\end{table}
+
+This study's predictions score 5/6 and are consistent with the speculative market's predictions for all categories except Best Picture. It is important to note that \emph{Captain Phillips} has a much larger predicted probability than many would considered. This stems from its surprise win at the ACE Eddie awards and the Writer's Guild Awards. The WGA win is unique as neither frontrunner film for Best Picture was allowed to contest - \emph{12 Years a Slave} being ineligible for nomination due to a guild dispute and \emph{Gravity} excluded for lack of merit. Furthermore, the 2014 Supporting Actress race was the closest. Lupita Nyong'o prevailed for \emph{12 Years a Slave} over fellow nominee Jennifer Lawrence for \emph{American Hustle}. This is attributed to our model showing a larger odds ratio for the BAFTA winner (Nyong'o) over the Golden Globes winner (Lawrence). This is the only acting race where the model places a greater weight on the BAFTAs than on the Golden Globes. For Lead Actor, Lead Actress and Supporting Actor, wins at the Golden Globes increase their Oscar odds by factors of 14, 13 and 19 respectively.
+
+
+\section{Discussion}
+Determining the best performances, direction and film of the year is hardly a scientific design. However with a rich set of data, there continue to be promising avenues to study the predictability of the Academy Awards. As seen in the analysis, previous film awards, particularly guild awards, have an unquestionably large effect on the odds of winning an Oscar in certain categories. There are many new award shows, such as the Spirits, the Critic's Choice Awards and SAG awards which we have excluded for the sake of statistical power. However in the coming years, we anticipates there will be sufficient data to re-model the Oscar ceremonies using new film award shows and these awards show strong signs of being promising indicators of the Oscar winning incidence rate.
+
+\appendix
+\section{Tables}
+\begin{table*}[h!]
+\caption{Final Models with backwards stepwise $AIC_c$ selection}
+\resizebox*{\textwidth}{!}{%
+\begin{tabular}{@{\extracolsep{5pt}}lD{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} D{.}{.}{-3} } 
+\\[-1.8ex]\hline 
+\hline \\[-1.8ex] 
+ & \multicolumn{6}{c}{\textit{Dependent variable:}} \\ 
+\cline{2-7} 
+\\[-1.8ex] & \multicolumn{6}{c}{Won Oscar} \\ 
+ & \multicolumn{1}{c}{Best Actor} & \multicolumn{1}{c}{Best Actress} & \multicolumn{1}{c}{Best Supporting Actor} & \multicolumn{1}{c}{Best Supporting Actress} & \multicolumn{1}{c}{Best Director} & \multicolumn{1}{c}{Best Picture} \\ 
+\hline \\[-1.8ex] 
+ globes & 14.379^{***} & 13.143^{***} & 18.995^{***} & 4.543^{***} &  &  \\ 
+  & \multicolumn{1}{c}{(5.960$, $37.704)} & \multicolumn{1}{c}{(5.201$, $36.135)} & \multicolumn{1}{c}{(8.180$, $48.009)} & \multicolumn{1}{c}{(2.076$, $10.107)} &  &  \\ 
+  bafta & 3.626^{***} & 4.582^{***} &  & 6.351^{***} &  & 9.152^{**} \\ 
+  & \multicolumn{1}{c}{(1.423$, $9.292)} & \multicolumn{1}{c}{(1.749$, $12.352)} &  & \multicolumn{1}{c}{(2.523$, $16.470)} &  & \multicolumn{1}{c}{(1.809$, $56.179)} \\ 
+  script.nom & 4.635^{***} & 2.025 &  &  & 11.623 &  \\ 
+  & \multicolumn{1}{c}{(1.658$, $15.150)} & \multicolumn{1}{c}{(0.818$, $5.173)} &  &  & \multicolumn{1}{c}{(0.551$, $886.875)} &  \\ 
+  Hot & 3.248^{**} & 3.939^{***} &  &  &  & 5.293^{**} \\ 
+  & \multicolumn{1}{c}{(1.159$, $9.236)} & \multicolumn{1}{c}{(1.424$, $11.225)} &  &  &  & \multicolumn{1}{c}{(1.157$, $28.281)} \\ 
+  fall & 0.421^{**} &  &  &  &  &  \\ 
+  & \multicolumn{1}{c}{(0.173$, $0.981)} &  &  &  &  &  \\ 
+  past.win &  & 0.272^{**} &  &  &  &  \\ 
+  &  & \multicolumn{1}{c}{(0.082$, $0.785)} &  &  &  &  \\ 
+  past.nom &  & 1.407^{***} &  &  &  &  \\ 
+  &  & \multicolumn{1}{c}{(1.110$, $1.805)} &  &  &  &  \\ 
+  drama &  & 0.267 &  &  &  &  \\ 
+  &  & \multicolumn{1}{c}{(0.057$, $1.517)} &  &  &  &  \\ 
+  rom &  & 2.526^{**} &  &  &  &  \\ 
+  &  & \multicolumn{1}{c}{(1.024$, $6.473)} &  &  &  &  \\ 
+  Dark &  &  & 2.507^{*} &  &  &  \\ 
+  &  &  & \multicolumn{1}{c}{(0.958$, $6.537)} &  &  &  \\ 
+  eddie &  &  &  &  & 6.475^{**} & 8.015^{***} \\ 
+  &  &  &  &  & \multicolumn{1}{c}{(1.284$, $32.763)} & \multicolumn{1}{c}{(1.928$, $39.474)} \\ 
+  comedy &  &  & 3.999^{***} & 2.138^{*} & 0.198 & 5.328^{**} \\ 
+  &  &  & \multicolumn{1}{c}{(1.510$, $10.814)} & \multicolumn{1}{c}{(0.927$, $4.998)} & \multicolumn{1}{c}{(0.018$, $1.530)} & \multicolumn{1}{c}{(1.083$, $29.526)} \\ 
+  action &  &  & 0.314 &  &  &  \\ 
+  &  &  & \multicolumn{1}{c}{(0.065$, $1.261)} &  &  &  \\ 
+  edit.nom &  & 2.397^{*} & 3.410^{***} & 2.710^{**} &  & 15.978^{**} \\ 
+  &  & \multicolumn{1}{c}{(0.913$, $6.348)} & \multicolumn{1}{c}{(1.399$, $8.796)} & \multicolumn{1}{c}{(1.193$, $6.203)} &  & \multicolumn{1}{c}{(2.238$, $178.153)} \\ 
+  wga &  &  &  & 2.766^{**} &  & 6.696^{***} \\ 
+  &  &  &  & \multicolumn{1}{c}{(1.045$, $7.261)} &  & \multicolumn{1}{c}{(1.759$, $32.714)} \\ 
+  dga &  &  &  &  & 355.224^{***} & 232.514^{***} \\ 
+  &  &  &  &  & \multicolumn{1}{c}{(82.578$, $2,641.651)} & \multicolumn{1}{c}{(50.109$, $1,804.354)} \\ 
+  Constant & 0.030^{***} & 0.059^{***} & 0.031^{***} & 0.050^{***} & 0.003^{***} & 0.0002^{***} \\ 
+  & \multicolumn{1}{c}{(0.008$, $0.091)} & \multicolumn{1}{c}{(0.010$, $0.265)} & \multicolumn{1}{c}{(0.011$, $0.073)} & \multicolumn{1}{c}{(0.022$, $0.103)} & \multicolumn{1}{c}{(0.00003$, $0.056)} & \multicolumn{1}{c}{(0.00001$, $0.004)} \\ 
+ \hline \\[-1.8ex] 
+Observations & \multicolumn{1}{c}{220} & \multicolumn{1}{c}{221} & \multicolumn{1}{c}{221} & \multicolumn{1}{c}{221} & \multicolumn{1}{c}{221} & \multicolumn{1}{c}{239} \\
+$AIC_c$ & \multicolumn{1}{c}{158.694} & \multicolumn{1}{c}{168.916} & \multicolumn{1}{c}{163.268} & \multicolumn{1}{c}{186.131} & \multicolumn{1}{c}{74.361} & \multicolumn{1}{c}{82.544} \\
+AIC & \multicolumn{1}{c}{158.300} & \multicolumn{1}{c}{167.868} & \multicolumn{1}{c}{162.875} & \multicolumn{1}{c}{185.739} & \multicolumn{1}{c}{74.082} & \multicolumn{1}{c}{81.918} \\
+Area under ROC & \multicolumn{1}{c}{0.883} & \multicolumn{1}{c}{0.874} & \multicolumn{1}{c}{0.853} & \multicolumn{1}{c}{0.790} & \multicolumn{1}{c}{0.962} & \multicolumn{1}{c}{0.977} \\
+\hline 
+\hline \\[-1.8ex]
+\end{tabular}
+}
+\begin{tablenotes} {\footnotesize \emph{Note:} Values are in terms of odds ratios and 95\% exponentiated confidence intervals. $^{*}$p$<$0.1; $^{**}$p$<$0.05; $^{***}$p$<$0.01}
+\end{tablenotes}
+\end{table*}
+
+\begin{table*}
+\caption{Full 2014 Prediction and Speculation odds}
+\begin{center}
+\begin{tabular}{lcccc}
+\hline\hline
+\multicolumn{1}{l}{\bfseries Nominee}&\multicolumn{2}{c}{\bfseries Bookie spread}&\multicolumn{1}{c}{\bfseries }&\multicolumn{1}{c}{\bfseries Model prediction}\tabularnewline
+\cline{2-3} \cline{5-5}
+\multicolumn{1}{l}{}&\multicolumn{1}{c}{Betting Odds}&\multicolumn{1}{c}{Implied Probability}&\multicolumn{1}{c}{}&\multicolumn{1}{c}{Probability}\tabularnewline
+\hline
+{\bfseries Lead Actor}&&&&\tabularnewline
+~~Christian Bale&125/1&0.008&&0.054 $\pm$ 0.02\tabularnewline
+~~Bruce Dern&55/1&0.018&&0.12 $\pm$ 0.04\tabularnewline
+~~Leonardo DiCaprio&11/2&0.154&&0.054 $\pm$ 0.02\tabularnewline
+~~Chiwetel Ejiofor&20/1&0.048&&0.404 $\pm$ 0.15\tabularnewline
+~~Matthew McConaughey&3/10&0.769&&0.729 $\pm$ 0.13\tabularnewline
+\hline
+{\bfseries Lead Actress}&&&&\tabularnewline
+~~Amy Adams&20/1&0.048&&0.232 $\pm$ 0.11\tabularnewline
+~~Cate Blanchett&1/25&0.962&&0.674 $\pm$ 0.14\tabularnewline
+~~Sandra Bullock&33/1&0.029&&0.014 $\pm$ 0.01\tabularnewline
+~~Judi Dench&40/1&0.024&&0.211 $\pm$ 0.11\tabularnewline
+~~Meryl Streep&100/1&0.01&&0.096 $\pm$ 0.11\tabularnewline
+\hline
+{\bfseries Supporting Actor}&&&&\tabularnewline
+~~Barkhad Abdi&16/1&0.059&&0.211 $\pm$ 0.08\tabularnewline
+~~Bradley Cooper&100/1&0.01&&0.096 $\pm$ 0.04\tabularnewline
+~~Michael Fassbender&14/1&0.067&&0.211 $\pm$ 0.08\tabularnewline
+~~Jonah Hill&66/1&0.015&&0.239 $\pm$ 0.11\tabularnewline
+~~Jared Leto&1/12&0.923&&0.836 $\pm$ 0.08\tabularnewline
+\hline
+{\bfseries Supporting Actress}&&&&\tabularnewline
+~~Sally Hawkins&50/1&0.02&&0.097 $\pm$ 0.03\tabularnewline
+~~Jennifer Lawrence&7/5&0.417&&0.383 $\pm$ 0.10\tabularnewline
+~~Lupita Nyong'o&5/6&0.545&&0.465 $\pm$ 0.13\tabularnewline
+~~Julia Roberts&66/1&0.015&&0.048 $\pm$ 0.02\tabularnewline
+~~June Squibb&50/1&0.02&&0.048 $\pm$ 0.02\tabularnewline
+\hline
+{\bfseries Directing}&&&&\tabularnewline
+~~David O. Russell&66/1&0.015&&0.032 $\pm$ 0.02\tabularnewline
+~~Alfonso Cuaron&1/16&0.941&&0.922 $\pm$ 0.06\tabularnewline
+~~Alexander Payne&150/1&0.007&&0.032 $\pm$ 0.02\tabularnewline
+~~Steve McQueen&14/1&0.067&&0.032 $\pm$ 0.02\tabularnewline
+~~Martin Scorcese&100/1&0.01&&0.007 $\pm$ 0.01\tabularnewline
+\hline
+{\bfseries Picture}&&&&\tabularnewline
+~~American Hustle&22/1&0.043&&0.004 $\pm$ 0.00\tabularnewline
+~~Captain Phillips&250/1&0.004&&0.17 $\pm$ 0.11\tabularnewline
+~~Dallas Buyers Club&40/1&0.024&&0.004 $\pm$ 0.00\tabularnewline
+~~Gravity&7/2&0.25&&0.47 $\pm$ 0.17\tabularnewline
+~~Her&250/1&0.004&&0.002 $\pm$ 0.00\tabularnewline
+~~Nebraska&250/1&0.004&&0 $\pm$ 0.00\tabularnewline
+~~Philomena&250/1&0.004&&0.001 $\pm$ 0.00\tabularnewline
+~~12 Years a Slave&1/3&0.75&&0.156 $\pm$ 0.14\tabularnewline
+~~The Wolf of Wall Street&66/1&0.015&&0.001 $\pm$0.00\tabularnewline
+\hline
+\end{tabular}\end{center}\end{table*}
+
+
+\nocite{*}
+
+\bibliography{apa}
+
+\end{document}
